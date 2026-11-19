@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neufeld Christmas</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="gate" class="gate">
+  <div class="gate-card">
+    <svg viewBox="0 0 64 64" class="gate-tree" aria-hidden="true"><path d="M32 4L50 28H42L56 46H8L22 28H14z" fill="#1e7a34"/><rect x="28" y="46" width="8" height="10" fill="#6b4423"/><path d="M32 0l1.8 3.6 3.9.6-2.8 2.8.7 3.9L32 9.1l-3.6 1.8.7-3.9-2.8-2.8 3.9-.6z" fill="#d9a441"/></svg>
+    <h1>Neufeld Christmas</h1>
+    <p>Our family Christmas site — enter the shared password to come in.</p>
+    <form id="gate-form">
+      <input type="password" id="gate-input" placeholder="Password" autocomplete="current-password" autofocus>
+      <button class="btn" type="submit">Let me in</button>
+    </form>
+    <p class="gate-error" id="gate-error" hidden>That's not it — try again.</p>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <header class="site-header">
+    <div class="knit-band"></div>
+    <div class="header-card">
+      <div class="deco-row">
+        <svg viewBox="0 0 24 24" class="ic" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M2 12h20M4.9 4.9l14.2 14.2M19.1 4.9L4.9 19.1"/></svg>
+        <svg viewBox="0 0 24 24" class="ic" aria-hidden="true"><rect x="10.6" y="1.5" width="2.8" height="3" fill="#d9a441"/><circle cx="12" cy="14" r="8" fill="#c1272d"/><circle cx="9" cy="11" r="2.2" fill="#fff" opacity=".55"/></svg>
+        <svg viewBox="0 0 24 24" class="ic" fill="none" stroke-linecap="round" aria-hidden="true"><path d="M9 21V9a3.5 3.5 0 0 1 7 0" stroke="#c1272d" stroke-width="3.4"/><path d="M6.6 15.4l4.8-2M7.2 11.8l4.8-2M8.6 8.4l3.6-1.4" stroke="#fff" stroke-width="1.5"/></svg>
+        <svg viewBox="0 0 64 64" class="ic" aria-hidden="true"><path d="M14 22L8 8M14 22l6-14M50 22l6-14M50 22l-6-14" stroke="#7b4a21" stroke-width="4" stroke-linecap="round" fill="none"/><circle cx="32" cy="38" r="18" fill="#a9743f"/><circle cx="25" cy="34" r="2.4" fill="#222"/><circle cx="39" cy="34" r="2.4" fill="#222"/><circle cx="32" cy="46" r="5" fill="#c1272d"/></svg>
+      </div>
+      <h1>Neufeld Christmas</h1>
+      <p class="subtitle">One tree for every giver — tap a face to see their page.</p>
+    </div>
+  </header>
+
+  <main>
+    <section id="event-card" class="card event-card"></section>
+    <div id="trees" class="trees"></div>
+    <section id="roster" class="card"></section>
+    <p id="status-pill" class="status-pill"></p>
+  </main>
+
+  <footer class="site-footer">
+    Made for the Neufeld family &middot; Tap a face, then Edit, to change anything on this site.
+  </footer>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>App.start('index');</script>
+</body>
+</html>
