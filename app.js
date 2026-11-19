@@ -431,8 +431,8 @@ function personEditHTML(data, draft) {
       return '<figure class="photo"><img src="' + esc(src) + '" alt="Wish list photo">' +
         '<button type="button" class="photo-del" data-action="del-photo" data-index="' + i + '" title="Delete photo">' + SVG.trash + '</button></figure>';
     }).join('') +
-    '<label class="photo-add">' + SVG.plus + '<span>Add photo</span>' +
-    '<input type="file" id="photo-input" accept="image/*,.heic,.heif" class="photo-input"></label>' +
+    '<button type="button" class="photo-add" id="photo-add-btn">' + SVG.plus + '<span>Add photo</span></button>' +
+    '<input type="file" id="photo-input" accept="image/*,.heic,.heif" class="photo-input">' +
     '</div>' +
     '<div class="btn-row"><button class="btn" data-action="save-person">Save changes</button>' +
     '<button class="btn ghost" data-action="cancel-person">Cancel</button></div>' +
@@ -652,6 +652,16 @@ document.addEventListener('click', function (e) {
     App.collectPersonDraft();
     App.draft.photos.splice(idx, 1);
     App.render();
+  }
+});
+
+/* A real button opens the picker (input.click() from a tap) — more reliable
+   on mobile than a label wrapping the input. */
+document.addEventListener('click', function (e) {
+  var btn = e.target && e.target.closest ? e.target.closest('#photo-add-btn') : null;
+  if (btn) {
+    var input = document.getElementById('photo-input');
+    if (input) input.click();
   }
 });
 

@@ -115,7 +115,7 @@ img{max-width:100%}
 .photo-del .ic{width:16px; height:16px}
 .photo-add{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
   min-height:150px; border:3px dashed var(--line); border-radius:10px; color:var(--green);
-  font-weight:bold; cursor:pointer; background:#fbf3df}
+  font:inherit; font-weight:bold; cursor:pointer; background:#fbf3df}
 .photo-add:hover{border-color:var(--green)}
 .photo-add .ic{width:30px; height:30px}
 /* File input: visually hidden but NOT display:none — iOS Safari won't reliably
