@@ -432,7 +432,7 @@ function personEditHTML(data, draft) {
         '<button type="button" class="photo-del" data-action="del-photo" data-index="' + i + '" title="Delete photo">' + SVG.trash + '</button></figure>';
     }).join('') +
     '<label class="photo-add">' + SVG.plus + '<span>Add photo</span>' +
-    '<input type="file" id="photo-input" accept="image/*" class="photo-input"></label>' +
+    '<input type="file" id="photo-input" accept="image/*,.heic,.heif" class="photo-input"></label>' +
     '</div>' +
     '<div class="btn-row"><button class="btn" data-action="save-person">Save changes</button>' +
     '<button class="btn ghost" data-action="cancel-person">Cancel</button></div>' +
@@ -468,53 +468,129 @@ function collectWishRows(form) {
   return out;
 }
 
-/* Shrink a user photo so it stays small in the database (max 900px, JPEG).
-   Tries <img> decode first, then createImageBitmap — some mobile browsers
-   can't draw certain phone formats (e.g. HEIC) from an <img>. */
-function downscalePhoto(file) {
-  return new Promise(function (resolve, reject) {
-    var url = URL.createObjectURL(file);
-    var img = new Image();
-    img.onload = function () { finish(img.naturalWidth, img.naturalHeight, img); };
-    img.onerror = function () {
-      if (window.createImageBitmap) {
-        createImageBitmap(file).then(function (bmp) {
-          finish(bmp.width, bmp.height, bmp);
-        }).catch(function (err) { URL.revokeObjectURL(url); reject(err); });
-      } else {
-        URL.revokeObjectURL(url);
-        reject(new Error('image could not be read'));
-      }
-    };
-    img.src = url;
-    function finish(w, h, source) {
-      try {
-        var max = 900;
-        var scale = Math.min(1, max / Math.max(w, h));
-        var canvas = document.createElement('canvas');
-        canvas.width = Math.round(w * scale);
-        canvas.height = Math.round(h * scale);
-        canvas.getContext('2d').drawImage(source, 0, 0, canvas.width, canvas.height);
-        if (source && source.close) source.close();
-        URL.revokeObjectURL(url);
-        resolve(canvas.toDataURL('image/jpeg', 0.82));
-      } catch (err) {
-        URL.revokeObjectURL(url);
-        reject(err);
-      }
-    }
+/* ---------- photo pipeline: any phone photo in, small JPEG data URL out ----------
+   1. Native decode — createImageBitmap, then <img>. Covers JPEG/PNG/WebP/GIF/
+      AVIF, and HEIC on Safari (which decodes it natively).
+   2. HEIC converter — heic2any (~1.3 MB, lazy-loaded from a CDN once and
+      cached) converts HEIC/HEIF to JPEG inside the browser for Chrome/Firefox/
+      Android, which can't decode it. Photos never leave the device; only the
+      one-time converter download crosses the network.
+   3. Any size — the first canvas is capped at 4096px and the image is
+      step-downscaled in halves before the final draw at max 900px, so a
+      48 MP photo never blows the mobile canvas/memory limits. One file at a
+      time: a decoded 12 MP photo is ~48 MB in memory. */
+var MAX_PHOTO = 900;
+
+function bitmapToJpeg(source, w, h) {
+  var SAFE_MAX = 4096; // largest canvas edge mobile browsers reliably allow
+  var firstScale = Math.min(1, SAFE_MAX / Math.max(w, h));
+  var canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(w * firstScale));
+  canvas.height = Math.max(1, Math.round(h * firstScale));
+  var ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff'; // white behind PNG transparency (JPEG has none)
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+  if (source && source.close) source.close();
+  while (Math.max(canvas.width, canvas.height) > MAX_PHOTO * 2) {
+    var half = document.createElement('canvas');
+    half.width = Math.max(1, Math.round(canvas.width / 2));
+    half.height = Math.max(1, Math.round(canvas.height / 2));
+    var hctx = half.getContext('2d');
+    hctx.fillStyle = '#ffffff';
+    hctx.fillRect(0, 0, half.width, half.height);
+    hctx.drawImage(canvas, 0, 0, half.width, half.height);
+    canvas = half;
+  }
+  var scale = Math.min(1, MAX_PHOTO / Math.max(canvas.width, canvas.height));
+  var out = document.createElement('canvas');
+  out.width = Math.max(1, Math.round(canvas.width * scale));
+  out.height = Math.max(1, Math.round(canvas.height * scale));
+  var octx = out.getContext('2d');
+  octx.fillStyle = '#ffffff';
+  octx.fillRect(0, 0, out.width, out.height);
+  octx.drawImage(canvas, 0, 0, out.width, out.height);
+  return out.toDataURL('image/jpeg', 0.82);
+}
+
+function tryBitmap(file) {
+  if (!window.createImageBitmap) return Promise.reject(new Error('no createImageBitmap'));
+  var p;
+  try {
+    p = createImageBitmap(file, { imageOrientation: 'from-image' });
+  } catch (e) {
+    p = createImageBitmap(file);
+  }
+  return Promise.resolve(p).then(function (bmp) {
+    return { source: bmp, width: bmp.width, height: bmp.height };
   });
 }
 
+function tryImg(file) {
+  return new Promise(function (resolve, reject) {
+    var url = URL.createObjectURL(file);
+    var img = new Image();
+    img.onload = function () {
+      URL.revokeObjectURL(url);
+      resolve({ source: img, width: img.naturalWidth, height: img.naturalHeight });
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('img decode failed')); };
+    img.src = url;
+  });
+}
+
+var heic2anyPromise = null;
+function loadHeic2any() {
+  if (window.heic2any) return Promise.resolve(window.heic2any);
+  if (heic2anyPromise) return heic2anyPromise;
+  heic2anyPromise = loadScript('https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js')
+    .then(function () {
+      if (!window.heic2any) throw new Error('converter did not load');
+      return window.heic2any;
+    })
+    .catch(function (err) { heic2anyPromise = null; throw err; });
+  return heic2anyPromise;
+}
+
+function tryHeicConvert(file) {
+  return loadHeic2any().then(function (convert) {
+    return convert({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+  }).then(function (out) {
+    var blob = Array.isArray(out) ? out[0] : out;
+    return tryBitmap(blob).catch(function () { return tryImg(blob); });
+  });
+}
+
+function downscalePhoto(file) {
+  return tryBitmap(file)
+    .catch(function () { return tryImg(file); })
+    .catch(function () { return tryHeicConvert(file); })
+    .then(function (r) { return bitmapToJpeg(r.source, r.width, r.height); });
+}
+
 /* Show a visible error when a photo can't be added (never fail silently). */
-function showPhotoError() {
+function showPhotoError(file) {
   var grid = document.querySelector('#person-edit .photo-grid');
   if (!grid) return;
+  var working = grid.querySelector('.photo-working');
+  if (working) working.remove();
   var old = grid.querySelector('.photo-error');
   if (old) old.remove();
   var p = document.createElement('p');
   p.className = 'photo-error';
-  p.textContent = 'That photo could not be added — try a JPG, or a smaller photo from your library.';
+  var what = (file && file.name) || 'That photo';
+  p.textContent = what + ' could not be added. If it is a very large panorama, try a smaller crop, or save it as a JPG first.';
+  grid.appendChild(p);
+}
+
+function showPhotoWorking() {
+  var grid = document.querySelector('#person-edit .photo-grid');
+  if (!grid) return;
+  var old = grid.querySelector('.photo-working');
+  if (old) old.remove();
+  var p = document.createElement('p');
+  p.className = 'photo-working';
+  p.textContent = 'Adding photo…';
   grid.appendChild(p);
 }
 
@@ -584,12 +660,13 @@ document.addEventListener('change', function (e) {
     var input = e.target;
     App.collectPersonDraft();
     var files = Array.prototype.slice.call(e.target.files);
+    showPhotoWorking();
     var done = Promise.resolve();
     files.forEach(function (file) {
       done = done.then(function () { return downscalePhoto(file); })
         .then(function (dataUrl) { App.draft.photos.push(dataUrl); });
     });
     done.then(function () { input.value = ''; App.render(); })
-      .catch(function () { input.value = ''; showPhotoError(); });
+      .catch(function () { input.value = ''; showPhotoError(files[0]); });
   }
 });
