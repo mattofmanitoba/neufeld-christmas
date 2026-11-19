@@ -29,7 +29,15 @@
    public and has no accounts):
      { "rules": { ".read": true, ".write": true } }
    ------------------------------------------------------------------ */
-const FIREBASE_CONFIG = null;
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCdwnPomdWYyLdvH2yqJPdbctNd6_xBjvk",
+  authDomain: "neufeld-christmas.firebaseapp.com",
+  databaseURL: "https://neufeld-christmas-default-rtdb.firebaseio.com",
+  projectId: "neufeld-christmas",
+  storageBucket: "neufeld-christmas.firebasestorage.app",
+  messagingSenderId: "388628890657",
+  appId: "1:388628890657:web:b6c48e4ad42d94b04a0f60"
+};
 
 const DB_PATH = 'neufeld-christmas';
 const LS_KEY = 'nxmas-data-v1';
