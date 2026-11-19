@@ -432,7 +432,7 @@ function personEditHTML(data, draft) {
         '<button type="button" class="photo-del" data-action="del-photo" data-index="' + i + '" title="Delete photo">' + SVG.trash + '</button></figure>';
     }).join('') +
     '<label class="photo-add">' + SVG.plus + '<span>Add photo</span>' +
-    '<input type="file" id="photo-input" accept="image/*" hidden></label>' +
+    '<input type="file" id="photo-input" accept="image/*" class="photo-input"></label>' +
     '</div>' +
     '<div class="btn-row"><button class="btn" data-action="save-person">Save changes</button>' +
     '<button class="btn ghost" data-action="cancel-person">Cancel</button></div>' +
@@ -468,25 +468,54 @@ function collectWishRows(form) {
   return out;
 }
 
-/* Shrink a user photo so it stays small in the database (max 900px, JPEG). */
+/* Shrink a user photo so it stays small in the database (max 900px, JPEG).
+   Tries <img> decode first, then createImageBitmap — some mobile browsers
+   can't draw certain phone formats (e.g. HEIC) from an <img>. */
 function downscalePhoto(file) {
   return new Promise(function (resolve, reject) {
-    var img = new Image();
     var url = URL.createObjectURL(file);
-    img.onload = function () {
-      var max = 900;
-      var w = img.naturalWidth, h = img.naturalHeight;
-      var scale = Math.min(1, max / Math.max(w, h));
-      var canvas = document.createElement('canvas');
-      canvas.width = Math.round(w * scale);
-      canvas.height = Math.round(h * scale);
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL('image/jpeg', 0.82));
+    var img = new Image();
+    img.onload = function () { finish(img.naturalWidth, img.naturalHeight, img); };
+    img.onerror = function () {
+      if (window.createImageBitmap) {
+        createImageBitmap(file).then(function (bmp) {
+          finish(bmp.width, bmp.height, bmp);
+        }).catch(function (err) { URL.revokeObjectURL(url); reject(err); });
+      } else {
+        URL.revokeObjectURL(url);
+        reject(new Error('image could not be read'));
+      }
     };
-    img.onerror = reject;
     img.src = url;
+    function finish(w, h, source) {
+      try {
+        var max = 900;
+        var scale = Math.min(1, max / Math.max(w, h));
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.round(w * scale);
+        canvas.height = Math.round(h * scale);
+        canvas.getContext('2d').drawImage(source, 0, 0, canvas.width, canvas.height);
+        if (source && source.close) source.close();
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      } catch (err) {
+        URL.revokeObjectURL(url);
+        reject(err);
+      }
+    }
   });
+}
+
+/* Show a visible error when a photo can't be added (never fail silently). */
+function showPhotoError() {
+  var grid = document.querySelector('#person-edit .photo-grid');
+  if (!grid) return;
+  var old = grid.querySelector('.photo-error');
+  if (old) old.remove();
+  var p = document.createElement('p');
+  p.className = 'photo-error';
+  p.textContent = 'That photo could not be added — try a JPG, or a smaller photo from your library.';
+  grid.appendChild(p);
 }
 
 /* ---------------- events ---------------- */
@@ -552,6 +581,7 @@ document.addEventListener('click', function (e) {
 
 document.addEventListener('change', function (e) {
   if (e.target && e.target.id === 'photo-input' && e.target.files.length) {
+    var input = e.target;
     App.collectPersonDraft();
     var files = Array.prototype.slice.call(e.target.files);
     var done = Promise.resolve();
@@ -559,6 +589,7 @@ document.addEventListener('change', function (e) {
       done = done.then(function () { return downscalePhoto(file); })
         .then(function (dataUrl) { App.draft.photos.push(dataUrl); });
     });
-    done.then(function () { App.render(); });
+    done.then(function () { input.value = ''; App.render(); })
+      .catch(function () { input.value = ''; showPhotoError(); });
   }
 });

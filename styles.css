@@ -118,6 +118,10 @@ img{max-width:100%}
   font-weight:bold; cursor:pointer; background:#fbf3df}
 .photo-add:hover{border-color:var(--green)}
 .photo-add .ic{width:30px; height:30px}
+/* File input: visually hidden but NOT display:none — iOS Safari won't reliably
+   fire `change` on a display:none input after picking from the photo library. */
+.photo-input{position:absolute; width:1px; height:1px; opacity:0; overflow:hidden; pointer-events:none}
+.photo-error{grid-column:1 / -1; color:var(--red); font-weight:bold; font-size:13px; margin:0}
 
 /* ---------- edit forms ---------- */
 .edit-row{display:flex; gap:8px; margin:8px 0; align-items:center}
