@@ -129,6 +129,14 @@ img{max-width:100%}
 .edit-row input, .edit-row select{flex:1; min-width:0; padding:9px; border:2px solid var(--line);
   border-radius:8px; font:inherit}
 .edit-row input.wide{flex:2}
+/* Wish rows stack: wish is two lines, link and note each get a full line. */
+.edit-row.wish-row{flex-direction:column; align-items:stretch; gap:6px; padding:10px;
+  border:2px dashed var(--line); border-radius:10px}
+.edit-row.wish-row textarea{width:100%; min-height:58px; padding:9px; border:2px solid var(--line);
+  border-radius:8px; font:inherit; resize:vertical}
+.edit-row.wish-row input{width:100%}
+.wish-note-row{display:flex; gap:8px; align-items:center}
+.wish-note-row input{flex:1; min-width:0}
 .icon-btn{flex:0 0 auto; width:36px; height:36px; border-radius:50%; border:none; cursor:pointer;
   background:#f3e2c7; color:var(--red); display:flex; align-items:center; justify-content:center}
 .icon-btn:hover{background:#f6d9a8}

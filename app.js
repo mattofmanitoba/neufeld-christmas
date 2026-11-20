@@ -403,11 +403,11 @@ function relRowsHTML(data, draft, kind, rels) {
 
 function wishRowsHTML(draft) {
   return (draft.wishlist || []).map(function (item, i) {
-    return '<div class="edit-row" data-kind="wish" data-index="' + i + '">' +
-      '<input class="wide" data-field="text" placeholder="Wish" value="' + esc(item.text || '') + '">' +
+    return '<div class="edit-row wish-row" data-kind="wish" data-index="' + i + '">' +
+      '<textarea data-field="text" rows="2" placeholder="Wish">' + esc(item.text || '') + '</textarea>' +
       '<input data-field="url" placeholder="Link (optional)" value="' + esc(item.url || '') + '">' +
-      '<input data-field="note" placeholder="Note (optional)" value="' + esc(item.note || '') + '">' +
-      '<button type="button" class="icon-btn" data-action="del-wish" data-index="' + i + '" title="Remove">' + SVG.trash + '</button>' +
+      '<div class="wish-note-row"><input data-field="note" placeholder="Note (optional)" value="' + esc(item.note || '') + '">' +
+      '<button type="button" class="icon-btn" data-action="del-wish" data-index="' + i + '" title="Remove">' + SVG.trash + '</button></div>' +
       '</div>';
   }).join('');
 }
