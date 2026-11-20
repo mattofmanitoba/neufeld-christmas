@@ -228,7 +228,27 @@ window.SEED_DATA = {
         }
       ],
       "role": "Rich",
-      "wishlist": []
+      "wishlist": [
+        {
+          "note": "Just make sure money goes to Ukraine!",
+          "text": "Ukrainian patches, trident emblems, size 10.5 rings, winter hats, t-shirts (medium \u2014 maybe green with a small logo)"
+        },
+        {
+          "note": "From a Palestinian organization",
+          "text": "Keffiyeh \u2014 black and white or green"
+        },
+        {
+          "text": "Mini fridge for my shop"
+        },
+        {
+          "text": "Cool shop accessories (neon lights??)"
+        },
+        {
+          "note": "So I don't have to squeeze ear buds into hearing protection \u2014 $69.50 at Lee Valley",
+          "text": "ProHear Bluetooth Hearing Protection",
+          "url": "https://www.leevalley.com/en-ca/shop/tools/apparel-and-safety-gear/hearing-protection/116490-prohear-bluetooth-hearing-protection"
+        }
+      ]
     },
     {
       "avatar": "media-generation-avatar-hannah-v2-0-e7dcc14b-c6f0-4e69-9269-331b02f15563.webp",
