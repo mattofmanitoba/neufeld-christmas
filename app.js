@@ -282,6 +282,7 @@ const App = {
     var form = $('#person-edit');
     if (!form) return;
     var d = this.draft;
+    if (!Array.isArray(d.photos)) d.photos = []; // older saved records may lack a photos list
     d.name = $('[data-field="name"]', form).value.trim() || d.name;
     d.role = $('[data-field="role"]', form).value.trim();
     d.givesTo = collectRelRows(form, 'gives');
@@ -674,7 +675,7 @@ document.addEventListener('change', function (e) {
     var done = Promise.resolve();
     files.forEach(function (file) {
       done = done.then(function () { return downscalePhoto(file); })
-        .then(function (dataUrl) { App.draft.photos.push(dataUrl); });
+        .then(function (dataUrl) { if (!App.draft.photos) App.draft.photos = []; App.draft.photos.push(dataUrl); });
     });
     done.then(function () { input.value = ''; App.render(); })
       .catch(function () { input.value = ''; showPhotoError(files[0]); });
