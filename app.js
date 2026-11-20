@@ -285,6 +285,8 @@ const App = {
     if (!Array.isArray(d.photos)) d.photos = []; // older saved records may lack a photos list
     d.name = $('[data-field="name"]', form).value.trim() || d.name;
     d.role = $('[data-field="role"]', form).value.trim();
+    var em = $('[data-field="emails"]', form);
+    if (em) d.emails = em.value.split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; });
     d.givesTo = collectRelRows(form, 'gives');
     d.receivesFrom = collectRelRows(form, 'receives');
     d.wishlist = collectWishRows(form);
@@ -365,7 +367,7 @@ function photosHTML(photos) {
   }
   return '<div class="photo-grid">' + photos.map(function (src) {
     return '<figure class="photo"><img src="' + esc(src) + '" alt="Wish list photo"></figure>';
-  }).join('') + '</div>';
+  }).join('') + '</div><p class="hint">Tap a photo to view it full screen.</p>';
 }
 
 function personViewHTML(data, p) {
@@ -379,6 +381,8 @@ function personViewHTML(data, p) {
     '<div class="card"><h2>' + SVG.bauble + ' Receiving from</h2>' + relListHTML(data, p.receivesFrom) + '</div>' +
     '<div class="card"><h2>' + SVG.star + ' Wish list</h2>' + wishListHTML(p.wishlist) + '</div>' +
     '<div class="card"><h2>' + SVG.cane + ' Photos</h2>' + photosHTML(p.photos) +
+    '<button type="button" class="btn secondary" data-action="notify-givers">Notify givers of a change</button>' +
+    '<p class="notify-status"></p>' +
     '<p class="hint">Spotted a mistake or want to add a wish? Hit Edit — anyone in the family can change this page.</p></div>';
 }
 
@@ -419,6 +423,7 @@ function personEditHTML(data, draft) {
     '<div style="flex:1;min-width:200px">' +
     '<div class="edit-field"><label>Name</label><input data-field="name" value="' + esc(draft.name) + '"></div>' +
     '<div class="edit-field"><label>Role / age (optional)</label><input data-field="role" value="' + esc(draft.role || '') + '"></div>' +
+    '<div class="edit-field"><label>Email(s) for gift notifications — comma-separated</label><input data-field="emails" value="' + esc((draft.emails || []).join(', ')) + '"></div>' +
     '</div></div>' +
     '<p class="edit-label">Giving to</p>' + relRowsHTML(data, draft, 'gives', draft.givesTo) +
     '<button type="button" class="btn small secondary" data-action="add-give">+ Add a recipient</button>' +
@@ -595,6 +600,69 @@ function showPhotoWorking() {
   grid.appendChild(p);
 }
 
+/* ---------- photo lightbox: tap a photo for a full-screen view ---------- */
+function openLightbox(src) {
+  var lb = document.getElementById('lightbox');
+  if (!lb) {
+    lb = document.createElement('div');
+    lb.id = 'lightbox';
+    lb.className = 'lightbox';
+    lb.innerHTML = '<button type="button" class="lightbox-close" aria-label="Close">\u2715</button><img alt="Photo full screen">';
+    lb.addEventListener('click', function () { closeLightbox(); });
+    document.body.appendChild(lb);
+  }
+  lb.querySelector('img').src = src;
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  var lb = document.getElementById('lightbox');
+  if (lb) lb.classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeLightbox(); });
+/* Tapping a wish-list photo opens it full screen (not the delete button). */
+document.addEventListener('click', function (e) {
+  var img = e.target && e.target.closest ? e.target.closest('.photo img') : null;
+  if (img) openLightbox(img.getAttribute('src'));
+});
+
+/* ---------- notify givers: one intentional email ----------
+   A static site has no server to send mail itself, so this composes the
+   email in the user's own mail app, addressed to everyone who buys for
+   this person — they just hit Send. One tap, one email, no repeats. */
+function notifyGivers() {
+  var p = personById(Store.data, App.personId);
+  if (!p) return;
+  var status = document.querySelector('.notify-status');
+  var to = [];
+  var names = [];
+  var missing = [];
+  (p.receivesFrom || []).forEach(function (r) {
+    var g = personById(Store.data, r.person);
+    if (!g) return;
+    var em = g.emails || [];
+    if (em.length) {
+      em.forEach(function (e) { if (to.indexOf(e) < 0) to.push(e); });
+      if (names.indexOf(g.name) < 0) names.push(g.name);
+    } else {
+      missing.push(g.name);
+    }
+  });
+  if (!status) return;
+  if (!to.length) {
+    status.textContent = 'No email addresses on file for your givers \u2014 add them with Edit.';
+    return;
+  }
+  var pageUrl = location.href.split('#')[0];
+  var subject = encodeURIComponent(p.name + "'s Christmas wish list changed");
+  var body = encodeURIComponent('Hi,\n\n' + p.name + ' updated their Christmas wish list for Neufeld Christmas (Boxing Day, Dec 26 at Erv and Donna\u2019s).\n\nSee the latest list here:\n' + pageUrl + '\n\n\u2014 Neufeld Christmas');
+  window.location.href = 'mailto:' + to.join(',') + '?subject=' + subject + '&body=' + body;
+  var msg = 'Opening your email app addressed to ' + names.join(', ') + '. Just hit Send.';
+  if (missing.length) msg += ' ' + missing.join(', ') + ' has no email on file, so tell them another way.';
+  status.textContent = msg;
+}
+
 /* ---------------- events ---------------- */
 document.addEventListener('click', function (e) {
   var el = e.target.closest('[data-action]');
@@ -653,6 +721,8 @@ document.addEventListener('click', function (e) {
     App.collectPersonDraft();
     App.draft.photos.splice(idx, 1);
     App.render();
+  } else if (action === 'notify-givers') {
+    notifyGivers();
   }
 });
 

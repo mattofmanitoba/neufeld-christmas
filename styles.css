@@ -147,6 +147,16 @@ img{max-width:100%}
 .edit-label{font-size:13px; font-weight:bold; margin:14px 0 2px}
 
 /* ---------- status + footer ---------- */
+.notify-status{font-size:13px; color:#6b5a44; margin:8px 0 0}
+
+/* ---------- photo lightbox ---------- */
+.lightbox{position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center;
+  background:rgba(20,8,8,.92); padding:16px}
+.lightbox.open{display:flex}
+.lightbox img{max-width:100%; max-height:100%; object-fit:contain; border-radius:8px}
+.lightbox-close{position:absolute; top:14px; right:14px; width:44px; height:44px; border-radius:50%;
+  border:none; background:#fff; color:var(--red-dark); font-size:20px; cursor:pointer}
+.photo img{cursor:zoom-in}
 .status-pill{text-align:center; font-size:13px; color:#ffe9c9; margin:6px 0 0}
 .status-pill b{color:#fff}
 .site-footer{text-align:center; font-size:12px; color:#f3d9b0; margin-top:26px}

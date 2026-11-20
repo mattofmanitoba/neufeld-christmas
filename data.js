@@ -14,6 +14,9 @@ window.SEED_DATA = {
   "people": [
     {
       "avatar": "media-generation-avatar-donna-0-ed04be8d-8f82-4277-9154-a47f07a9101c.webp",
+      "emails": [
+        "neufeld2013@gmail.com"
+      ],
       "givesTo": [
         {
           "person": "jp"
@@ -81,6 +84,9 @@ window.SEED_DATA = {
     },
     {
       "avatar": "media-generation-avatar-erv-0-4e7118d7-dfa5-4468-ab7c-8bc5af53b72f.webp",
+      "emails": [
+        "ervetal@gmail.com"
+      ],
       "givesTo": [
         {
           "person": "jp"
@@ -129,6 +135,9 @@ window.SEED_DATA = {
     },
     {
       "avatar": "media-generation-avatar-jp-0-1311535a-04f4-4c95-8578-5749676d5f7c.webp",
+      "emails": [
+        "jp@jpneufeld.com"
+      ],
       "givesTo": [
         {
           "person": "donna"
@@ -185,6 +194,7 @@ window.SEED_DATA = {
     },
     {
       "avatar": "media-generation-avatar-richard-v2-0-afbbbb49-8011-45ff-b8c4-28c27f358719.webp",
+      "emails": [],
       "givesTo": [
         {
           "person": "erv"
@@ -222,6 +232,7 @@ window.SEED_DATA = {
     },
     {
       "avatar": "media-generation-avatar-hannah-v2-0-e7dcc14b-c6f0-4e69-9269-331b02f15563.webp",
+      "emails": [],
       "givesTo": [
         {
           "person": "erv"
@@ -263,6 +274,9 @@ window.SEED_DATA = {
     },
     {
       "avatar": "media-generation-avatar-matt-0-09fda086-dbe3-41cd-8618-e211663fd8c5.webp",
+      "emails": [
+        "mwrosin@gmail.com"
+      ],
       "givesTo": [
         {
           "person": "donna"
@@ -308,6 +322,9 @@ window.SEED_DATA = {
     },
     {
       "avatar": "media-generation-avatar-veronica-0-5d6cd433-1d45-49c2-aa1b-3f2eb34ba222.webp",
+      "emails": [
+        "v.rosin.h@gmail.com"
+      ],
       "givesTo": [
         {
           "person": "donna"
@@ -355,6 +372,7 @@ window.SEED_DATA = {
     },
     {
       "avatar": "media-generation-avatar-ava-v2-0-88dd3390-b87f-4ce1-9a24-e813609691fe.webp",
+      "emails": [],
       "givesTo": [],
       "id": "ava",
       "name": "Ava",
@@ -392,6 +410,7 @@ window.SEED_DATA = {
     },
     {
       "avatar": "media-generation-avatar-emry-0-5e08044c-56d0-47c6-892d-e99da7afcad0.webp",
+      "emails": [],
       "givesTo": [],
       "id": "emry",
       "name": "Emry",
@@ -429,6 +448,10 @@ window.SEED_DATA = {
     },
     {
       "avatar": "media-generation-avatar-ellie-0-2d21e1c3-d2bf-436c-a036-802efb449d1b.webp",
+      "emails": [
+        "mwrosin@gmail.com",
+        "v.rosin.h@gmail.com"
+      ],
       "givesTo": [],
       "id": "ellie",
       "name": "Ellie",
@@ -447,6 +470,10 @@ window.SEED_DATA = {
     },
     {
       "avatar": "media-generation-avatar-george-0-4b0db06c-494f-4f4b-bdee-678962898266.webp",
+      "emails": [
+        "mwrosin@gmail.com",
+        "v.rosin.h@gmail.com"
+      ],
       "givesTo": [],
       "id": "george",
       "name": "George",
